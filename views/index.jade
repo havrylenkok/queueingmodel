@@ -1,0 +1,17 @@
+doctype html
+html
+  head
+    title= title
+    link(rel='stylesheet', href='/stylesheets/style.css')
+  body
+    block content
+      h1= title
+      div
+        form(action='/results', method='get')
+          div(data-role='fieldcontain')
+            fieldset(data-role='controlgroup')
+              label(for='timeInput') Time system works
+                input(id='timeInput',type='text',value='',placeholder='5000',
+                name='timeInput')
+                input(type='submit',value='Calculate',data-transition='fade',
+        data-theme='c')

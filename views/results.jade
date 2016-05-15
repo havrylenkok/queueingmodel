@@ -1,0 +1,22 @@
+doctype html
+html
+  head
+    title= title
+    link(rel='stylesheet', href='/stylesheets/style.css')
+  body
+    block content
+      h2 Resulting information about queue in parking lot
+      div(id="result")
+        p Cars in queue total: #{result.post}
+        p Served: #{result.obsl} cars. Rejected: #{result.otk} cars.
+        p Total time spent on serving: #{result.sm_t_obs} minutes.
+        h3 Time by cars in queue:
+        p At least 1 car: #{result.t_och1} minutes; At least 2 cars: #{result.t_och2} minutes; At least 3 cars: #{result.t_och3} minutes
+      h2 Visualized results
+        div(id="images")
+          div(id="approve")
+            - for(var i = 0; i < result.obsl; i++)
+             img(src='../img/app.png' width= 480 / result.obsl)
+          div(id="reject")
+            - for(var i = 0; i < result.otk; i++)
+             img(src='../img/rej.png' width= 480 / result.obsl)

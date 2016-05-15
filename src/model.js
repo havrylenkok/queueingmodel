@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 const Rands = require("rands");
 const r = new Rands();
@@ -15,21 +15,15 @@ for (let i = 1; i < 5; i++) {
   P[i] = Math.pow(rho, i) * P[0];
 }
 
-const Preject = P[4];
-const q = 1 - Preject;
+const pReject = P[4];
+const q = 1 - pReject;
 const A = lambda * q;
 const Ls = (rho * (1 - (N + 1)) * Math.pow(rho, N) + N * Math.pow(rho, N + 1)) / ((1 - rho) * (1 - Math.pow(rho, N + 1)));
 const Ws = Ls / (lambda * (1 - P[N]));
 const Wq = Ws - 1 / mu;
 const Lq = lambda * (1 - P[N]) * Wq;
 
-let t_och1;
-let t_och2;
-let t_och3;
-let sm_t_obs;
-let post;
-let otk;
-let obsl;
+
 
 /**
  * Simulates queueing model
@@ -38,70 +32,77 @@ let obsl;
  */
 function p(k, callback) {
   let t1;
-  let t_okon;
+  let t_okon = 0;
   let t;
   let rn_post;
-  let och;
+  let och = 0;
   let per;
 
-  t_och1 = 0;
-  t_och2 = 0;
-  t_och3 = 0;
-  post = 0;
-  otk = 0;
-  obsl = 0;
-  t_okon = 0;
-  sm_t_obs = 0;
-  och = 0;
+  // queue time, when 1/2/3 car in
+  let t_och1 = 0;
+  let t_och2 = 0;
+  let t_och3 = 0;
+
+// time spent in service
+  let sm_t_obs = 0;
+
+// car num in service
+  let post = 0;
+
+// num of denials
+  let otk = 0;
+
+// duration in service
+  let obsl = 0;
 
   rn_post = Math.floor(Math.random() * (1200 - 1 + 1)) + 1;
   for (let i = 1; i <= k; i++) {
     t1 = Math.floor(Math.random() * (1200 - 1 + 1)) + 1;
-    if (och == 1) {
+    if (och === 1) {
       t_och1 = t_och1 + 1
     }
-    if (och == 2) {
+    if (och === 2) {
       t_och2 = t_och2 + 1
     }
-    if (och == 3) {
+    if (och === 3) {
       t_och3 = t_och3 + 1
     }
-    if (t1 >= 1 && t1 <= 17 && t_okon == 0 && och >= 0 && och <= 3) {
+    if (t1 >= 1 && t1 <= 17 && t_okon === 0 && och >= 0 && och <= 3) {
       per = 1
     }
     if (t1 >= 1 && t1 <= 17 && t_okon > 0 && och >= 0 && och < 3) {
       per = 2
     }
-    if (t1 >= 1 && t1 <= 17 && t_okon > 0 && och == 3) {
+    if (t1 >= 1 && t1 <= 17 && t_okon > 0 && och === 3) {
       per = 3
     }
     if (t1 > 17 && t_okon > 0) {
       per = 4
     }
-    if (t1 > 17 && t_okon == 0 && och > 0) {
+    if (t1 > 17 && t_okon === 0 && och > 0) {
       per = 5
     }
-    if (per == 1) {
+    if (per === 1) {
       t_okon = r.poisson(65);
       sm_t_obs = sm_t_obs + t_okon;
       obsl = obsl + 1;
       post = post + 1;
     }
-    if (per == 2) {
+    if (per === 2) {
       t_okon = t_okon - 1;
       obsl = obsl + 1;
       och = och + 1;
       post = post + 1;
     }
-    if (per == 3) {
+    if (per === 3) {
       t_okon = t_okon - 1;
       otk = otk + 1;
       post = post + 1;
     }
-    if (per == 4) {
+    if (per === 4) {
       t_okon = t_okon - 1;
     }
-    if (per == 5) {
+    if (per === 5) {
       t_okon = r.poisson(65);
       sm_t_obs = sm_t_obs + t_okon;
       och = och - 1
@@ -127,6 +128,5 @@ function p(k, callback) {
   console.log(`${t_och3} мин. 3 машины в очереди`);
 
 }
-p(5000);
 
 module.exports = p;
