@@ -1,11 +1,16 @@
 {
   "name": "application-name",
   "version": "0.0.1",
+  "description": "Queueing model of parking lot",
+  "scripts": {
+    "start": "node src/server.js"
+  },
   "dependencies": {
     "body-parser": "^1.15.1",
     "express": "^4.13.4",
     "jade": "^1.11.0",
     "path": "^0.12.7",
     "rands": "^1.0.0"
-  }
+  },
+  "license": "MIT"
 }
