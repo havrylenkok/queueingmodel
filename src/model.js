@@ -2,131 +2,150 @@
 
 const Rands = require("rands");
 const r = new Rands();
+const EventEmitter = require('events');
 
-const lambda = 0.85;
-const tSr = 1.05;
-const mu = 1 / tSr;
-const rho = lambda / mu;
-const N = 4;
+class Model extends EventEmitter {
 
-let P = [];
-P[0] = (1 - rho) / (1 - Math.pow(rho, N + 1));
-for (let i = 1; i < 5; i++) {
-  P[i] = Math.pow(rho, i) * P[0];
-}
+  constructor() {
+    super();
 
-const pReject = P[4];
-const q = 1 - pReject;
-const A = lambda * q;
-const Ls = (rho * (1 - (N + 1)) * Math.pow(rho, N) + N * Math.pow(rho, N + 1)) / ((1 - rho) * (1 - Math.pow(rho, N + 1)));
-const Ws = Ls / (lambda * (1 - P[N]));
-const Wq = Ws - 1 / mu;
-const Lq = lambda * (1 - P[N]) * Wq;
+    this._lambda = 0.85;
+    this._tSr = 1.05;
+    this._mu = 1 / this._tSr;
+    this._rho = this._lambda / this._mu;
+    this._N = 4;
 
+    this.P = [];
+    this.P[0] = (1 - this._rho) / (1 - Math.pow(this._rho, this._N + 1));
+    for (let i = 1; i < 5; i++) {
+      this.P[i] = Math.pow(this._rho, i) * this.P[0];
+    }
 
+    this.pReject = this.P[4];
+    this.q = 1 - this.pReject;
+    this._A = this._lambda * this.q;
+    this._Ls = (this._rho * (1 - (this._N + 1)) * Math.pow(this._rho, this._N) + this._N * Math.pow(this._rho, this._N + 1)) / ((1 - this._rho) * (1 - Math.pow(this._rho, this._N + 1)));
+    this._Ws = this._Ls / (this._lambda * (1 - this.P[this._N]));
+    this._Wq = this._Ws - 1 / this._mu;
+    this._Lq = this._lambda * (1 - this.P[this._N]) * this._Wq;
 
-/**
- * Simulates queueing model
- * @param k minutes, how long system works
- * @param callback where to save data
- */
-function p(k, callback) {
-  let t1;
-  let t_okon = 0;
-  let t;
-  let rn_post;
-  let och = 0;
-  let per;
-
-  // queue time, when 1/2/3 car in
-  let t_och1 = 0;
-  let t_och2 = 0;
-  let t_och3 = 0;
-
+    this.t1 = 0;
+    this.t_okon = 0;
+    this.t = 0;
+    this._rn_post = Math.floor(Math.random() * (1200 - 1 + 1)) + 1;
+    this.och = 0;
+    this.per = 0;
+    // queue time, when 1/2/3 car in
+    this._t_och1 = 0;
+    this._t_och2 = 0;
+    this._t_och3 = 0;
 // time spent in service
-  let sm_t_obs = 0;
-
+    this._sm_t_obs = 0;
 // car num in service
-  let post = 0;
-
+    this.post = 0;
 // num of denials
-  let otk = 0;
-
+    this.otk = 0;
 // duration in service
-  let obsl = 0;
-
-  rn_post = Math.floor(Math.random() * (1200 - 1 + 1)) + 1;
-  for (let i = 1; i <= k; i++) {
-    t1 = Math.floor(Math.random() * (1200 - 1 + 1)) + 1;
-    if (och === 1) {
-      t_och1 = t_och1 + 1
-    }
-    if (och === 2) {
-      t_och2 = t_och2 + 1
-    }
-    if (och === 3) {
-      t_och3 = t_och3 + 1
-    }
-    if (t1 >= 1 && t1 <= 17 && t_okon === 0 && och >= 0 && och <= 3) {
-      per = 1
-    }
-    if (t1 >= 1 && t1 <= 17 && t_okon > 0 && och >= 0 && och < 3) {
-      per = 2
-    }
-    if (t1 >= 1 && t1 <= 17 && t_okon > 0 && och === 3) {
-      per = 3
-    }
-    if (t1 > 17 && t_okon > 0) {
-      per = 4
-    }
-    if (t1 > 17 && t_okon === 0 && och > 0) {
-      per = 5
-    }
-    if (per === 1) {
-      t_okon = r.poisson(65);
-      sm_t_obs = sm_t_obs + t_okon;
-      obsl = obsl + 1;
-      post = post + 1;
-    }
-    if (per === 2) {
-      t_okon = t_okon - 1;
-      obsl = obsl + 1;
-      och = och + 1;
-      post = post + 1;
-    }
-    if (per === 3) {
-      t_okon = t_okon - 1;
-      otk = otk + 1;
-      post = post + 1;
-    }
-    if (per === 4) {
-      t_okon = t_okon - 1;
-    }
-    if (per === 5) {
-      t_okon = r.poisson(65);
-      sm_t_obs = sm_t_obs + t_okon;
-      och = och - 1
-    }
+    this.obsl = 0;
   }
 
-  callback({
-    post: post,
-    obsl: obsl,
-    otk: otk,
-    sm_t_obs: sm_t_obs,
-    t_och1: t_och1,
-    t_och2: t_och2,
-    t_och3: t_och3
-  });
+  /**
+   * Simulates queueing model
+   * @param k minutes, how long system works
+   * @param onResultReady where to save data
+   */
+  p(k, onResultReady) {
 
-  console.log(`Поступило на обслуживание автомобилей ${post}`);
-  console.log(`Обслужено ${obsl}`);
-  console.log(`Отказано в обслуживании ${otk}`);
-  console.log(`Затрачено на обслуживание ${sm_t_obs} мин.`);
-  console.log(`${t_och1} мин. 1 машина в очереди`);
-  console.log(`${t_och2} мин. 2 машины в очереди`);
-  console.log(`${t_och3} мин. 3 машины в очереди`);
+    k = parseInt(k, 10);
 
+    this.countOneIteration(k, () => {
+
+      onResultReady({
+        post: this.post,
+        obsl: this.obsl,
+        otk: this.otk,
+        sm_t_obs: this._sm_t_obs,
+        t_och1: this._t_och1,
+        t_och2: this._t_och2,
+        t_och3: this._t_och3
+      });
+
+      console.log(`Поступило на обслуживание автомобилей ${this.post}`);
+      console.log(`Обслужено ${this.obsl}`);
+      console.log(`Отказано в обслуживании ${this.otk}`);
+      console.log(`Затрачено на обслуживание ${this._sm_t_obs} мин.`);
+      console.log(`${this._t_och1} мин. 1 машина в очереди`);
+      console.log(`${this._t_och2} мин. 2 машины в очереди`);
+      console.log(`${this._t_och3} мин. 3 машины в очереди`);
+    });
+
+
+
+  }
+
+  /**
+   * Simulates asyncroniously {@code counter} minutes of system work
+   * @param counter minutes of work
+   * @param onFinish callback to save results
+   */
+  countOneIteration(counter, onFinish) {
+
+    setImmediate(() => {
+      this.t1 = Math.floor(Math.random() * (1200 - 1 + 1)) + 1;
+      if (this.och === 1) {
+        this._t_och1 = this._t_och1 + 1
+      }
+      if (this.och === 2) {
+        this._t_och2 = this._t_och2 + 1
+      }
+      if (this.och === 3) {
+        this._t_och3 = this._t_och3 + 1
+      }
+      if (this.t1 >= 1 && this.t1 <= 17 && this.t_okon === 0 && this.och >= 0 && this.och <= 3) {
+        this.per = 1
+      }
+      if (this.t1 >= 1 && this.t1 <= 17 && this.t_okon > 0 && this.och >= 0 && this.och < 3) {
+        this.per = 2
+      }
+      if (this.t1 >= 1 && this.t1 <= 17 && this.t_okon > 0 && this.och === 3) {
+        this.per = 3
+      }
+      if (this.t1 > 17 && this.t_okon > 0) {
+        this.per = 4
+      }
+      if (this.t1 > 17 && this.t_okon === 0 && this.och > 0) {
+        this.per = 5
+      }
+      if (this.per === 1) {
+        this.t_okon = r.poisson(65);
+        this._sm_t_obs = this._sm_t_obs + this.t_okon;
+        this.obsl = this.obsl + 1;
+        this.post = this.post + 1;
+      }
+      if (this.per === 2) {
+        this.t_okon = this.t_okon - 1;
+        this.obsl = this.obsl + 1;
+        this.och = this.och + 1;
+        this.post = this.post + 1;
+      }
+      if (this.per === 3) {
+        this.t_okon = this.t_okon - 1;
+        this.otk = this.otk + 1;
+        this.post = this.post + 1;
+      }
+      if (this.per === 4) {
+        this.t_okon = this.t_okon - 1;
+      }
+      if (this.per === 5) {
+        this.t_okon = r.poisson(65);
+        this._sm_t_obs = this._sm_t_obs + this.t_okon;
+        this.och = this.och - 1;
+      }
+
+      if (counter > 0) this.countOneIteration(--counter, onFinish);
+      else onFinish();
+    });
+  }
 }
 
-module.exports = p;
+module.exports = Model;

@@ -1,27 +1,31 @@
 'use strict';
 
-const model = require('./../model');
+const Model = require('./../model');
 const strings = require('./../commons/strings');
 
 function renderIndex(req, res, next) {
 
-    res.render('index', {
-      title: strings.TITLE
-    });
+  res.render('index', {
+    title: strings.TITLE
+  });
+  res.end();
 
 }
 
 function renderResults(req, res, next) {
-  let resultsFromModel;
   console.log(req.query.timeInput);
+  const model = new Model();
 
-  model(req.query.timeInput, (results) => {
-    resultsFromModel = results;
+  model.p(req.query.timeInput, (results) => {
+
     res.render('results', {
       title: strings.TITLE,
-      result: resultsFromModel
+      result: results
     });
+    res.end();
+
   });
+
 }
 
 module.exports = {
