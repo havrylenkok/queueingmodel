@@ -18,7 +18,7 @@ app.get('/', (req, res) => {
   console.log("get!!!")
 });
 app.post('/', (req, res) => {
-  res.json({message: 'welcome to api!'});
+  require('./controllers/apiController')(req, res);
   console.log("post");
 });
 app.get('/results', (req, res) => {
