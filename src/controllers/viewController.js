@@ -1,7 +1,7 @@
 'use strict';
 
-const Model = require('./../model');
 const strings = require('./../commons/strings');
+const child_process = require('child_process');
 
 function renderIndex(req, res, next) {
 
@@ -13,18 +13,19 @@ function renderIndex(req, res, next) {
 }
 
 function renderResults(req, res, next) {
-  console.log(req.query.timeInput);
-  const model = new Model();
 
-  model.p(req.query.timeInput, (results) => {
+  process.send = process.send || () => {};
+  let child = child_process.fork(__dirname + '/../model.js', req, res);
 
+  child.on('message', function (m) {
     res.render('results', {
       title: strings.TITLE,
-      result: results
+      result: m
     });
     res.end();
-
   });
+
+  child.send(req.query.timeInput);
 
 }
 

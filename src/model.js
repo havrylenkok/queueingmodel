@@ -54,21 +54,22 @@ class Model extends EventEmitter {
    * @param k minutes, how long system works
    * @param onResultReady where to save data
    */
-  p(k, onResultReady) {
+  p(k) {
 
     k = parseInt(k, 10);
 
     this.countOneIteration(k, () => {
 
-      onResultReady({
-        post: this.post,
-        obsl: this.obsl,
-        otk: this.otk,
-        sm_t_obs: this._sm_t_obs,
-        t_och1: this._t_och1,
-        t_och2: this._t_och2,
-        t_och3: this._t_och3
-      });
+      
+        process.send({
+          post: this.post,
+          obsl: this.obsl,
+          otk: this.otk,
+          sm_t_obs: this._sm_t_obs,
+          t_och1: this._t_och1,
+          t_och2: this._t_och2,
+          t_och3: this._t_och3
+        });
 
       console.log(`Поступило на обслуживание автомобилей ${this.post}`);
       console.log(`Обслужено ${this.obsl}`);
@@ -147,5 +148,14 @@ class Model extends EventEmitter {
     });
   }
 }
+
+
+process.send = process.send || () => {};
+process.on('message', (msg) => {
+
+  let model = new Model();
+  model.p(msg, process.send);
+
+});
 
 module.exports = Model;

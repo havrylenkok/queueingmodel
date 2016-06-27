@@ -15,7 +15,7 @@ app.set('view engine', 'jade');
 
 app.get('/', (req, res) => {
   require('./controllers/viewController').renderIndex(req, res);
-  console.log("get!!!")
+  console.log("get!!!");
 });
 app.post('/', (req, res) => {
   require('./controllers/apiController')(req, res);
@@ -25,5 +25,5 @@ app.get('/results', (req, res) => {
   require('./controllers/viewController').renderResults(req, res);
 });
 
-app.listen(process.env.PORT);
-console.log(`Server started on port ${process.env.PORT}`);
+app.listen(process.env.PORT || 3300);
+console.log(`Server started on port ${process.env.PORT || 3300}`);

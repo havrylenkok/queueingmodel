@@ -3,13 +3,18 @@
 const Model = require('./../model');
 
 function getResults(req, res) {
-  const model = new Model();
-  model.p(req.body.timeInput, (results) => {
+
+  process.send = process.send || () => {};
+  let child = child_process.fork(__dirname + '/../model.js', req, res);
+
+  child.on('message', function (m) {
     res.json({
       message: 'Hope you like my api!',
-      queueResults: results
+      queueResults: m
     });
   });
+
+  child.send(req.query.timeInput);
 }
 
 module.exports = getResults;
